@@ -109,29 +109,26 @@ async function init() {
 
 init().catch(console.error);
 
-// Convert ? placeholders to $1, $2, etc.
-function convertPlaceholders(text) {
-  let counter = 0;
-  return text.replace(/\?/g, () => `$${++counter}`);
-}
-
+// Explicit query helpers - no magic conversion
 const db = {
-  prepare: (text) => {
-    const convertedText = convertPlaceholders(text);
-    return {
-      run: async (...params) => {
-        const result = await pool.query(convertedText, params);
-        return { lastInsertRowid: result.rows[0]?.id, changes: result.rowCount };
-      },
-      get: async (...params) => {
-        const result = await pool.query(convertedText, params);
-        return result.rows[0];
-      },
-      all: async (...params) => {
-        const result = await pool.query(convertedText, params);
-        return result.rows;
-      }
-    };
+  query: (text, params) => pool.query(text, params),
+  
+  // For INSERT/UPDATE/DELETE - returns info about the operation
+  run: async (text, params) => {
+    const result = await pool.query(text, params);
+    return { lastInsertRowid: result.rows[0]?.id, changes: result.rowCount };
+  },
+  
+  // For SELECT single row
+  get: async (text, params) => {
+    const result = await pool.query(text, params);
+    return result.rows[0];
+  },
+  
+  // For SELECT multiple rows
+  all: async (text, params) => {
+    const result = await pool.query(text, params);
+    return result.rows;
   }
 };
 
