@@ -1,13 +1,10 @@
 const { Pool } = require('pg');
 
-// Railway provides DATABASE_URL automatically
-// For local dev, use your own PostgreSQL or keep SQLite for testing
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/agenda_app',
+  connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-// Test connection
 pool.on('connect', () => {
   console.log('Connected to PostgreSQL');
 });
@@ -16,7 +13,6 @@ pool.on('error', (err) => {
   console.error('PostgreSQL error:', err);
 });
 
-// Initialize tables
 async function init() {
   const client = await pool.connect();
   
@@ -111,27 +107,31 @@ async function init() {
   }
 }
 
-// Initialize on startup
 init().catch(console.error);
 
-// Helper to run queries
+// Convert ? placeholders to $1, $2, etc.
+function convertPlaceholders(text) {
+  let counter = 0;
+  return text.replace(/\?/g, () => `$${++counter}`);
+}
+
 const db = {
-  prepare: (text) => ({
-    run: async (...params) => {
-      const result = await pool.query(text, params);
-      return { lastInsertRowid: result.rows[0]?.id, changes: result.rowCount };
-    },
-    get: async (...params) => {
-      const result = await pool.query(text, params);
-      return result.rows[0];
-    },
-    all: async (...params) => {
-      const result = await pool.query(text, params);
-      return result.rows;
-    }
-  }),
-  exec: async (text) => {
-    await pool.query(text);
+  prepare: (text) => {
+    const convertedText = convertPlaceholders(text);
+    return {
+      run: async (...params) => {
+        const result = await pool.query(convertedText, params);
+        return { lastInsertRowid: result.rows[0]?.id, changes: result.rowCount };
+      },
+      get: async (...params) => {
+        const result = await pool.query(convertedText, params);
+        return result.rows[0];
+      },
+      all: async (...params) => {
+        const result = await pool.query(convertedText, params);
+        return result.rows;
+      }
+    };
   }
 };
 
