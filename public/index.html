@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agenda App</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff;--surf:#fff;--ink:#141413;--mute:#6B6A64;--line:#E4E1D6;--tint:#FAF9F5;--ac:#C96442;--ac2:#E3A58B;--on:#fff;--grid:rgba(20,20,19,.13);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#191918;--surf:#232321;--ink:#F5F4EE;--mute:#B5B3A8;--line:#3A3935;--tint:#2B2A27;--ac:#E07B57;--ac2:#9C4A31;--on:#191918;--grid:rgba(255,255,255,.12)}}
+:root[data-theme="dark"]{--bg:#191918;--surf:#232321;--ink:#F5F4EE;--mute:#B5B3A8;--line:#3A3935;--tint:#2B2A27;--ac:#E07B57;--ac2:#9C4A31;--on:#191918;--grid:rgba(255,255,255,.12)}
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+html,body{background:var(--bg);color:var(--ink);font:16px/1.5 "Inter",system-ui,sans-serif}
+body{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:40px 40px}
+h1,h2,h3,.serif{font-family:"Newsreader",Georgia,serif;font-weight:500;letter-spacing:-.015em}
+button,input,select{font:inherit;color:inherit}button{cursor:pointer}
+:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px 96px}
+.pad{padding:28px 16px}
+h1{font-size:clamp(40px,11vw,60px);line-height:1;margin-bottom:10px}
+.sub{color:var(--mute);margin-bottom:22px}
+.field{display:block;margin-bottom:14px}.field span{display:block;font-size:.9rem;color:var(--mute);margin-bottom:6px}
+input,select{width:100%;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--surf);min-height:46px}
+.btn{width:100%;padding:13px;border:0;border-radius:14px;background:var(--ac);color:var(--on);font-weight:600;min-height:46px}
+.btn:hover{filter:brightness(1.06)}
+.btn.small{padding:8px 16px;min-height:36px;font-size:.85rem}
+.btn.danger{background:#C44;}
+.card{background:var(--surf);border:1.5px solid var(--line);border-radius:18px;padding:16px;margin-bottom:16px}
+.card h3{font-size:1.25rem;margin-bottom:10px}
+header{display:flex;justify-content:space-between;align-items:center;padding:18px 0 14px}
+header h2{font-size:2rem}
+.hb{display:flex;gap:8px;align-items:center}
+.hb button{position:relative;min-height:44px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--surf)}
+.badge{position:absolute;top:-6px;right:-4px;background:var(--ac);color:var(--on);border-radius:99px;font-size:.72rem;padding:1px 7px;font-weight:600}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surf);border-top:1.5px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
+nav div{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:4px}
+nav button{background:none;border:0;border-radius:12px;padding:12px 0;min-height:48px;color:var(--mute);font-weight:500;font-size:.8rem}
+nav button[aria-current=page]{background:var(--ac);color:var(--on);font-weight:600}
+.view{display:none}.view.on{display:block;animation:arrive .3s ease both}
+#login{animation:arrive .5s ease both}
+@keyframes arrive{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.seg{display:flex;gap:6px}.seg button{flex:1;padding:10px 4px;border-radius:12px;border:1.5px solid var(--line);background:var(--surf);min-height:46px}
+.seg [aria-pressed=true]{background:var(--ac);border-color:var(--ac);color:var(--on);font-weight:600}
+.calhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.calhead b{font:500 1.4rem "Newsreader",serif}
+.calhead button{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--line);background:var(--surf);font-size:1.2rem}
+.dow,.days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.dow span{text-align:center;font-size:.8rem;color:var(--mute);padding:4px 0}
+.day{aspect-ratio:1/1.1;border-radius:10px;border:1.5px solid var(--line);background:var(--surf);padding:5px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0}
+div.day{border:0;background:none}
+.day.today{border-color:var(--ac)}
+.day.sel{background:var(--ac);border-color:var(--ac);color:var(--on)}
+.day .n{font-size:.85rem;font-weight:600}
+.blk{height:5px;width:100%;border-radius:2px;background:var(--ac2)}
+.blk.a{background:var(--ac)}
+.day.sel .blk{background:var(--on);opacity:.55}.day.sel .blk.a{opacity:1}
+.dh{display:flex;justify-content:space-between;align-items:baseline;margin:6px 0 6px}
+.dh h3{font-size:1.5rem}.dh small{color:var(--mute)}
+.item{display:flex;gap:12px;align-items:center;padding:14px 2px;border-bottom:1px dashed var(--line)}
+.ck{width:28px;height:28px;flex:none;border-radius:8px;border:2px solid var(--ac);background:var(--surf);color:var(--on);font-weight:700;padding:0}
+.ck[aria-pressed=true]{background:var(--ac)}
+.time{width:76px;font-size:.9rem;font-weight:600;flex:none}
+.what{flex:1;min-width:0}.what small{display:block;color:var(--mute)}
+.item.done .what b{text-decoration:line-through;color:var(--mute)}
+.tag{font-size:.78rem;padding:4px 10px;border-radius:99px;background:var(--tint);color:var(--ink);font-weight:600;white-space:nowrap}
+.tag.a,.tag.ok{background:var(--ac);color:var(--on)}.tag.pend{background:var(--ac2);color:#2A1C14}.tag.no{background:var(--line);color:var(--mute)}
+.empty{color:var(--mute);padding:14px 2px}
+.add{display:flex;gap:8px;margin-top:14px}.add .btn{width:auto;padding:0 20px}
+.rooms{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.room{padding:18px;border-radius:18px;border:1.5px solid var(--ac);background:var(--surf);text-align:left}
+.room b{display:block;font:500 1.35rem "Newsreader",serif}.room small{color:var(--mute)}
+.room .st{display:block;margin-top:14px;font-weight:600;color:var(--ac)}
+.room.taken{background:var(--tint);border-color:var(--line);cursor:not-allowed}.room.taken .st{color:var(--mute)}
+.room.mine{background:var(--ac);color:var(--on)}.room.mine small,.room.mine .st{color:var(--on)}
+.note{color:var(--mute);margin-top:14px;min-height:1.4em}
+.person{display:flex;align-items:center;gap:12px;padding:14px 2px;border-bottom:1px dashed var(--line)}
+.av{width:44px;height:44px;border-radius:50%;background:var(--tint);color:var(--ac);display:grid;place-items:center;font:500 1.3rem "Newsreader",serif;flex:none}
+.person div:nth-child(2){flex:1}.person small{display:block;color:var(--mute)}
+.chips{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.chips button{padding:8px 16px;border-radius:99px;border:1.5px solid var(--line);background:var(--surf);min-height:44px}
+.chips [aria-pressed=true]{background:var(--ac);border-color:var(--ac);color:var(--on);font-weight:600}
+.msgs{min-height:260px;max-height:46vh;overflow-y:auto;padding:4px 2px}
+.msg{max-width:82%;padding:10px 14px;border-radius:16px;margin:6px 0;background:var(--tint)}
+.msg small{display:block;font-size:.75rem;color:var(--mute)}
+.msg.me{margin-left:auto;background:var(--ac);color:var(--on)}.msg.me small{color:var(--on);opacity:.8}
+.bal{display:flex;gap:12px;margin-bottom:16px}.bal div{flex:1;background:var(--ac);color:var(--on);border-radius:18px;padding:16px}
+.bal div+div{background:var(--tint);color:var(--ink)}
+.bal b{display:block;font:500 2.6rem/1 "Newsreader",serif}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.al{display:flex;gap:12px;padding:14px 2px;border-bottom:1px dashed var(--line);align-items:flex-start}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--line);margin-top:7px;flex:none}.al.u .dot{background:var(--ac)}
+.al.u{font-weight:600}
+.ghost{background:none;border:1.5px solid var(--line);color:var(--ink)}
+.booking-row{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px dashed var(--line);font-size:.9rem}
+.booking-row > div:first-child{flex:1}
+.booking-row .actions{display:flex;gap:6px}
+:root{color-scheme:light dark}:root[data-theme="light"]{color-scheme:light}:root[data-theme="dark"]{color-scheme:dark}
+.attendee-item{display:flex;align-items:center;gap:8px;padding:8px;cursor:pointer;border-bottom:1px solid var(--line);}
+.attendee-item:last-child{border-bottom:none;}
+.attendee-item input{width:auto;min-height:auto;}
+.attendee-item:hover{background:var(--tint);}
+</style>
+</head>
+<body>
+
+<main id="login" class="pad wrap" style="padding-bottom:40px">
+  <div style="height:10vh"></div>
+  <h1>Your day,<br>in one place.</h1>
+  <p class="sub">Sign in to see your agenda, book a room and chat with your team.</p>
+  
+  <div class="card">
+    <label class="field"><span>Username</span><input id="lu" autocomplete="username"></label>
+    <label class="field"><span>Password</span><input id="lp" type="password" autocomplete="current-password"></label>
+    <button class="btn" onclick="doLogin()">Sign in</button>
+    <p class="note" id="lerr" style="color:var(--ac)"></p>
+  </div>
+  
+  <p class="sub" style="font-size:.85rem;margin-top:20px">Demo: jordan/ceo123, sarah/desk123, daniel/hr123, ben/dev123, megan/design123</p>
+</main>
+
+<div id="shell" class="wrap" hidden>
+  <header>
+    <div><h2 id="ttl">Today</h2><small id="who" style="color:var(--mute)"></small></div>
+    <div class="hb">
+      <button onclick="show('alerts')" aria-label="Notifications">
+        🔔<span class="badge" id="bd" hidden></span>
+      </button>
+      <button onclick="logout()">Sign out</button>
+    </div>
+  </header>
+
+  <section class="view on" id="v-today">
+    <div class="card" id="news"></div>
+    
+    <div class="card"><h3>Where are you today?</h3>
+      <div class="seg" id="ci">
+        <button onclick="setIn('Office')">Office</button>
+        <button onclick="setIn('Remote')">Remote</button>
+        <button onclick="setIn('Off')">Off</button>
+      </div>
+      <p class="note" id="cim">Not checked in yet.</p>
+    </div>
+    
+    <div class="card">
+      <div class="calhead">
+        <button onclick="mv(-1)">‹</button>
+        <b id="calTitle"></b>
+        <button onclick="mv(1)">›</button>
+      </div>
+      <div class="dow"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+      <div class="days" id="calDays"></div>
+    </div>
+    
+    <button class="btn" style="margin-bottom:20px" onclick="show('rooms')">Book a room</button>
+    
+    <div class="dh"><h3 id="dayTitle"></h3><small id="prog"></small></div>
+    <div id="list"></div>
+    <div class="add">
+      <input id="tm" type="time" style="width:116px;flex:none">
+      <input id="new" placeholder="Add to your agenda">
+      <button class="btn" onclick="addItem()">Add</button>
+    </div>
+  </section>
+
+  <section class="view" id="v-rooms">
+    <p class="sub">Book a room for any time. No double-booking.</p>
+    
+    <div class="card">
+      <h3>New booking</h3>
+      <div class="two">
+        <label class="field"><span>Date</span><input type="date" id="bkDate"></label>
+        <label class="field"><span>Room</span>
+          <select id="bkRoom">
+            <option>Maple</option><option>Cedar</option><option>Birch</option>
+            <option>Willow</option><option>Aspen</option><option>Rowan</option>
+          </select>
+        </label>
+      </div>
+      <div class="two">
+        <label class="field"><span>Start</span><input type="time" id="bkStart" value="09:00"></label>
+        <label class="field"><span>End</span><input type="time" id="bkEnd" value="10:00"></label>
+      </div>
+      
+      <div class="field">
+        <span>Attendees</span>
+        <div class="attendee-picker" id="attendeePicker" style="border:1.5px solid var(--line);border-radius:14px;padding:10px;background:var(--surf);max-height:150px;overflow-y:auto;">
+          <label style="display:flex;align-items:center;gap:8px;padding:8px;cursor:pointer;border-bottom:1px solid var(--line);">
+            <input type="checkbox" id="attEveryone" value="everyone" style="width:auto;min-height:auto;">
+            <span style="font-weight:600;color:var(--ac);">@everyone</span>
+          </label>
+          <div id="attendeeList"></div>
+        </div>
+        <small style="color:var(--mute);margin-top:4px;display:block;">Selected: <span id="attCount">0</span> people</small>
+      </div>
+      
+      <button class="btn" onclick="bookRoom()">Book room</button>
+      <p class="note" id="bkMsg"></p>
+    </div>
+    
+    <div class="dh"><h3>Today's availability</h3></div>
+    <div class="rooms" id="grid"></div>
+    <p class="note" id="msg"></p>
+  </section>
+
+  <section class="view" id="v-team">
+    <input id="ps" placeholder="Search people" oninput="renderTeam()" style="margin-bottom:14px">
+    <div class="card" id="tl"></div>
+  </section>
+
+  <section class="view" id="v-chat">
+    <div class="chips" id="chips"></div>
+    <div class="card">
+      <div class="msgs" id="msgs"></div>
+      <div class="add">
+        <input id="cm" placeholder="Write a message" onkeydown="if(event.key==='Enter')send()">
+        <button class="btn" onclick="send()">Send</button>
+      </div>
+    </div>
+    <p class="note">Chat is temporary and wipes when the server restarts.</p>
+  </section>
+
+  <section class="view" id="v-leave">
+    <div class="bal">
+      <div><b id="left">12</b>days left</div>
+      <div><b id="pend">0</b>pending</div>
+    </div>
+    <div class="card">
+      <h3>Request time off</h3>
+      <label class="field"><span>Type</span>
+        <select id="lt"><option>Annual leave</option><option>Sick leave</option><option>Personal day</option></select>
+      </label>
+      <div class="two">
+        <label class="field"><span>From</span><input type="date" id="lf"></label>
+        <label class="field"><span>To</span><input type="date" id="lto"></label>
+      </div>
+      <button class="btn" onclick="reqLeave()">Send request</button>
+      <p class="note" id="lm"></p>
+    </div>
+    <div class="card"><h3>Your requests</h3><div id="lr"></div></div>
+  </section>
+
+  <section class="view" id="v-admin" data-role="admin ceo">
+    <div class="card">
+      <h3>Assign to someone</h3>
+      <label class="field"><span>Person</span><select id="as"></select></label>
+      <div class="two">
+        <label class="field"><span>Date</span><input type="date" id="ad"></label>
+        <label class="field"><span>Time</span><input type="time" id="at"></label>
+      </div>
+      <label class="field"><span>What</span><input id="aw" placeholder="e.g. Safety training"></label>
+      <button class="btn" onclick="assign()">Assign</button>
+      <p class="note" id="am"></p>
+    </div>
+  </section>
+
+  <section class="view" id="v-desk" data-role="desk">
+    <div class="card">
+      <h3>All room bookings (ever)</h3>
+      <div id="allBookings"></div>
+    </div>
+    
+    <div class="card">
+      <h3>Visitors today</h3>
+      <div id="vl"></div>
+      <div class="add">
+        <input id="vn" placeholder="Visitor name">
+        <select id="vh" style="width:130px;flex:none"></select>
+        <button class="btn" onclick="addVis()">Add</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="v-alerts">
+    <button class="btn ghost" style="margin-bottom:14px" onclick="markAllRead()">Mark all as read</button>
+    <div class="card" id="alList"></div>
+  </section>
+
+  <section class="view" id="v-set">
+    <div class="card">
+      <h3>Appearance</h3>
+      <div class="seg" id="thm">
+        <button onclick="setTheme('system')">System</button>
+        <button onclick="setTheme('light')">Light</button>
+        <button onclick="setTheme('dark')">Dark</button>
+      </div>
+    </div>
+  </section>
+
+  <nav><div id="nv"></div></nav>
+</div>
+
+<script>
+// State
+let currentUser = null;
+let currentDate = new Date();
+let selectedDate = new Date().toISOString().split('T')[0];
+let agendaItems = [];
+let checkins = [];
+let rooms = [];
+let allBookings = [];
+let chatChannel = 'Team';
+let chatMessages = [];
+let leaveRequests = [];
+let users = [];
+let notifications = [];
+let agendaMonthCache = {};
+
+// API helper
+async function api(endpoint, options = {}) {
+  const opts = {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(currentUser && { 'user-id': currentUser.id })
+    },
+    ...options
+  };
+  
+  if (options.body) opts.body = JSON.stringify(options.body);
+  
+  const res = await fetch('/api' + endpoint, opts);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Request failed' }));
+    throw new Error(err.error || 'Request failed');
+  }
+  return res.json();
+}
+
+// Auth
+async function doLogin() {
+  const username = document.getElementById('lu').value;
+  const password = document.getElementById('lp').value;
+  
+  try {
+    const user = await api('/login', { method: 'POST', body: { username, password } });
+    currentUser = user;
+    localStorage.setItem('user', JSON.stringify(user));
+    showApp();
+  } catch (e) {
+    document.getElementById('lerr').textContent = e.message;
+  }
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('user');
+  document.getElementById('shell').hidden = true;
+  document.getElementById('login').hidden = false;
+}
+
+function showApp() {
+  document.getElementById('login').hidden = true;
+  document.getElementById('shell').hidden = false;
+  document.getElementById('who').textContent = currentUser.name + ' · ' + currentUser.title;
+  
+  // Set default booking date to today
+  document.getElementById('bkDate').value = selectedDate;
+  
+  buildNav();
+  loadInitialData();
+  show('today');
+}
+
+// Navigation
+function show(view) {
+  document.querySelectorAll('.view').forEach(s => {
+    const roles = s.dataset.role;
+    if (roles && !roles.split(' ').includes(currentUser.role)) {
+      s.classList.remove('on');
+      return;
+    }
+    s.classList.toggle('on', s.id === 'v-' + view);
+  });
+  
+  document.querySelectorAll('nav button').forEach(b => {
+    b.setAttribute('aria-current', b.dataset.v === view ? 'page' : 'false');
+  });
+  
+  document.getElementById('ttl').textContent = {
+    today: 'Today', rooms: 'Rooms', team: 'People', chat: 'Chat', 
+    leave: 'Time off', admin: 'Admin', desk: 'Front desk', 
+    alerts: 'Notifications', set: 'Settings'
+  }[view] || view;
+  
+  // Load view-specific data
+  if (view === 'rooms') loadRooms();
+  if (view === 'desk' && currentUser.role === 'desk') loadAllBookings();
+  if (view === 'alerts') loadNotifications();
+  
+  window.scrollTo(0, 0);
+}
+
+function buildNav() {
+  const items = [
+    ['today', 'Today'], ['rooms', 'Rooms'], ['team', 'People'], 
+    ['chat', 'Chat'], ['leave', 'Leave']
+  ];
+  if (currentUser.role === 'admin' || currentUser.role === 'ceo') items.push(['admin', 'Admin']);
+  if (currentUser.role === 'desk') items.push(['desk', 'Desk']);
+  items.push(['set', 'Settings']);
+  
+  document.getElementById('nv').innerHTML = items.map(([v, l]) => 
+    `<button data-v="${v}">${l}</button>`
+  ).join('');
+  
+  document.getElementById('nv').onclick = e => {
+    const btn = e.target.closest('button');
+    if (btn) show(btn.dataset.v);
+  };
+}
+
+// Data loading
+async function loadInitialData() {
+  await Promise.all([
+    loadUsers(),
+    loadCheckins(),
+    loadAgenda(),
+    loadAgendaMonth(), // This will call renderCalendar when done
+    loadRooms(),
+    loadChat(),
+    loadLeave(),
+    loadAnnouncements(),
+    loadNotifications()
+  ]);
+  renderAll();
+}
+
+async function loadUsers() {
+  users = await api('/users');
+  const opts = users.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+  document.getElementById('as').innerHTML = opts;
+  document.getElementById('vh').innerHTML = opts;
+  renderAttendeePicker();
+}
+
+async function loadCheckins() {
+  checkins = await api('/checkins/today');
+  const mine = checkins.find(c => c.id === currentUser.id);
+  if (mine && mine.status) {
+    document.querySelectorAll('#ci button').forEach(b => {
+      b.setAttribute('aria-pressed', b.textContent === mine.status);
+    });
+    document.getElementById('cim').textContent = 'Checked in: ' + mine.status;
+  }
+}
+
+async function loadAgenda() {
+  agendaItems = await api('/agenda/' + selectedDate);
+}
+
+async function loadRooms() {
+  rooms = await api('/rooms');
+  renderRooms();
+}
+
+async function loadAllBookings() {
+  try {
+    allBookings = await api('/bookings/all');
+    renderAllBookings();
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function loadChat() {
+  chatMessages = await api('/chat/' + chatChannel);
+}
+
+async function loadLeave() {
+  leaveRequests = await api('/leave');
+}
+
+async function loadAnnouncements() {
+  const news = await api('/announcements');
+  document.getElementById('news').innerHTML = '<h3>Company news</h3>' + 
+    news.slice(0, 2).map(n => 
+      `<p style="margin-bottom:8px">${esc(n.content)}<small style="display:block;color:var(--mute)">${esc(n.author)}</small></p>`
+    ).join('');
+}
+
+async function loadNotifications() {
+  try {
+    const data = await api('/notifications');
+    notifications = data.notifications;
+    const badge = document.getElementById('bd');
+    if (data.unread > 0) {
+      badge.textContent = data.unread;
+      badge.hidden = false;
+    } else {
+      badge.hidden = true;
+    }
+    renderNotifications();
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+// Rendering
+function renderAll() {
+  renderCalendar();
+  renderAgenda();
+  renderTeam();
+  renderRooms();
+  renderChat();
+  renderLeave();
+}
+
+function renderCalendar() {
+  const y = currentDate.getFullYear();
+  const m = currentDate.getMonth();
+  const today = new Date();
+  
+  document.getElementById('calTitle').textContent = 
+    new Date(y, m, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  
+  const firstDay = (new Date(y, m, 1).getDay() + 6) % 7;
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  
+  // Get dates with items for this month
+  const monthKey = `${y}-${String(m + 1).padStart(2, '0')}`;
+  const datesWithItems = agendaMonthCache[monthKey] || [];
+  
+  let html = '';
+  for (let i = 0; i < firstDay; i++) html += '<div class="day"></div>';
+  
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const isToday = dateStr === today.toISOString().split('T')[0];
+    const isSel = dateStr === selectedDate;
+    const hasItems = datesWithItems.includes(dateStr);
+    
+    html += `<button class="day${isToday ? ' today' : ''}${isSel ? ' sel' : ''}" 
+      onclick="pickDate('${dateStr}')">
+      <span class="n">${d}</span>
+      ${hasItems ? '<span class="blk"></span>' : ''}
+    </button>`;
+  }
+  
+  document.getElementById('calDays').innerHTML = html;
+}
+
+async function loadAgendaMonth() {
+  const y = currentDate.getFullYear();
+  const m = currentDate.getMonth() + 1;
+  const monthKey = `${y}-${String(m).padStart(2, '0')}`;
+  
+  if (!agendaMonthCache[monthKey]) {
+    agendaMonthCache[monthKey] = await api(`/agenda-month/${y}/${m}`);
+  }
+  renderCalendar();
+}
+
+function renderAgenda() {
+  const items = agendaItems.filter(i => i.date === selectedDate);
+  const done = items.filter(i => i.is_done).length;
+  
+  document.getElementById('dayTitle').textContent = 
+    new Date(selectedDate + 'T00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  document.getElementById('prog').textContent = items.length ? `${done} of ${items.length} done` : '';
+  
+  document.getElementById('list').innerHTML = items.length ? items.map(item => `
+    <div class="item${item.is_done ? ' done' : ''}">
+      <button class="ck" aria-pressed="${item.is_done}" onclick="toggleItem(${item.id})">
+        ${item.is_done ? '✓' : ''}
+      </button>
+      <span class="time">${esc(item.time)}</span>
+      <span class="what">
+        <b>${esc(item.description)}</b>
+        ${item.room ? `<small>${esc(item.room)}</small>` : ''}
+      </span>
+      ${item.assigned_by_name ? `<span class="tag a">From ${esc(item.assigned_by_name)}</span>` : '<span class="tag">Personal</span>'}
+    </div>
+  `).join('') : '<div class="empty">Nothing planned. Add something below.</div>';
+}
+
+function renderTeam() {
+  const q = (document.getElementById('ps').value || '').toLowerCase();
+  const filtered = checkins.filter(c => 
+    (c.name + c.title + (c.status || '')).toLowerCase().includes(q)
+  );
+  
+  document.getElementById('tl').innerHTML = filtered.map(c => {
+    const tag = c.status === 'Office' ? 'a' : c.status === 'Remote' ? 'pend' : c.status === 'Off' ? 'no' : '';
+    return `<div class="person">
+      <div class="av">${esc(c.name[0])}</div>
+      <div><b>${esc(c.name)}${c.id === currentUser.id ? ' (you)' : ''}</b><small>${esc(c.title)}</small></div>
+      <span class="tag ${tag}">${esc(c.status || 'Not set')}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderRooms() {
+  document.getElementById('grid').innerHTML = rooms.map(r => {
+    let statusText = '';
+    let statusClass = r.status;
+    
+    if (r.status === 'free' && r.next_available) {
+      statusText = `Free until ${r.next_available}`;
+    } else if (r.status === 'free') {
+      statusText = 'Free all day';
+    } else if (r.status === 'taken') {
+      statusText = `Taken by ${r.current_booking?.user_name || 'someone'}`;
+      if (r.next_available) statusText += `<br>Free after ${r.next_available}`;
+    } else if (r.status === 'mine') {
+      statusText = `Your booking: ${r.current_booking?.start_time}-${r.current_booking?.end_time}`;
+    }
+    
+    return `<button class="room ${statusClass}" ${r.status === 'taken' ? 'disabled' : ''}>
+      <b>${esc(r.name)}</b>
+      <small>${r.seats} seats</small>
+      <span class="st">${statusText}</span>
+    </button>`;
+  }).join('');
+}
+
+function renderAllBookings() {
+  if (!allBookings.length) {
+    document.getElementById('allBookings').innerHTML = '<div class="empty">No bookings yet.</div>';
+    return;
+  }
+  
+  document.getElementById('allBookings').innerHTML = allBookings.map(b => `
+    <div class="booking-row">
+      <div>
+        <b>${esc(b.room_name)}</b> · ${esc(b.date)}<br>
+        <small>${esc(b.start_time)} - ${esc(b.end_time)} · ${esc(b.user_name)} (${esc(b.user_title)})</small>
+        ${b.attendees && b.attendees.length ? `<br><small style="color:var(--ac)">With: ${esc(b.attendees.join(', '))}</small>` : ''}
+      </div>
+      <div class="actions">
+        <button class="btn small danger" onclick="deleteBooking(${b.id})">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderLeave() {
+  const mine = leaveRequests.filter(r => r.user_id === currentUser.id);
+  const pending = mine.filter(r => r.status === 'Pending').length;
+  
+  document.getElementById('pend').textContent = pending;
+  document.getElementById('lr').innerHTML = mine.length ? mine.map(r => {
+    const cls = r.status === 'Approved' ? 'ok' : r.status === 'Pending' ? 'pend' : 'no';
+    return `<div class="person">
+      <div><b>${esc(r.type)}</b><small>${esc(r.start_date)} to ${esc(r.end_date)}</small></div>
+      <span class="tag ${cls}" style="margin-left:auto">${esc(r.status)}</span>
+    </div>`;
+  }).join('') : '<div class="empty">No requests yet.</div>';
+}
+
+function renderNotifications() {
+  document.getElementById('alList').innerHTML = notifications.length ? notifications.map(n => `
+    <div class="al${n.is_read ? '' : ' u'}">
+      <span class="dot"></span>
+      <span>${esc(n.message)}<br><small style="color:var(--mute)">${new Date(n.created_at).toLocaleString()}</small></span>
+    </div>
+  `).join('') : '<div class="empty">No notifications.</div>';
+}
+
+// Actions
+async function setIn(status) {
+  await api('/checkin', { method: 'POST', body: { status } });
+  await loadCheckins();
+  renderTeam();
+  document.querySelectorAll('#ci button').forEach(b => {
+    b.setAttribute('aria-pressed', b.textContent === status);
+  });
+  document.getElementById('cim').textContent = 'Checked in: ' + status;
+}
+
+async function pickDate(date) {
+  selectedDate = date;
+  await loadAgenda();
+  renderCalendar(); // This will refresh selection highlight
+  renderAgenda();
+}
+
+function mv(n) {
+  currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + n, 1);
+  loadAgendaMonth();
+}
+
+async function addItem() {
+  const time = document.getElementById('tm').value || '09:00';
+  const desc = document.getElementById('new').value.trim();
+  if (!desc) return;
+  
+  await api('/agenda', { method: 'POST', body: { date: selectedDate, time, description: desc } });
+  document.getElementById('new').value = '';
+  
+  // Clear cache for this month and reload
+  const monthKey = selectedDate.slice(0, 7);
+  delete agendaMonthCache[monthKey];
+  
+  await loadAgenda();
+  await loadAgendaMonth();
+  renderAgenda();
+}
+
+async function toggleItem(id) {
+  await api(`/agenda/${id}/toggle`, { method: 'PUT' });
+  await loadAgenda();
+  renderAgenda();
+}
+
+async function bookRoom() {
+  const date = document.getElementById('bkDate').value;
+  const room = document.getElementById('bkRoom').value;
+  const start = document.getElementById('bkStart').value;
+  const end = document.getElementById('bkEnd').value;
+  
+  // Get selected attendees
+  const attendees = [];
+  if (document.getElementById('attEveryone').checked) {
+    attendees.push('everyone');
+  } else {
+    document.querySelectorAll('#attendeeList input:checked').forEach(cb => {
+      attendees.push(parseInt(cb.value));
+    });
+  }
+  
+  try {
+    await api('/rooms/book', { 
+      method: 'POST', 
+      body: { room_name: room, date, start_time: start, end_time: end, attendees } 
+    });
+    document.getElementById('bkMsg').textContent = `${room} booked for ${date} ${start}-${end}`;
+    document.getElementById('bkMsg').style.color = 'green';
+    
+    // Reset form
+    document.getElementById('attEveryone').checked = false;
+    document.querySelectorAll('#attendeeList input').forEach(cb => cb.checked = false);
+    updateAttendeeCount();
+    
+    await loadRooms();
+  } catch (e) {
+    document.getElementById('bkMsg').textContent = e.message;
+    document.getElementById('bkMsg').style.color = 'var(--ac)';
+  }
+}
+
+function renderAttendeePicker() {
+  const container = document.getElementById('attendeeList');
+  container.innerHTML = users.map(u => `
+    <label class="attendee-item">
+      <input type="checkbox" value="${u.id}" onchange="updateAttendeeCount()">
+      <span>${esc(u.name)} <small style="color:var(--mute)">(${esc(u.title)})</small></span>
+    </label>
+  `).join('');
+  
+  // @everyone toggles all others
+  document.getElementById('attEveryone').onchange = function() {
+    const checkboxes = document.querySelectorAll('#attendeeList input');
+    checkboxes.forEach(cb => cb.checked = false);
+    updateAttendeeCount();
+  };
+}
+
+function updateAttendeeCount() {
+  const everyone = document.getElementById('attEveryone').checked;
+  const count = everyone ? users.length - 1 : document.querySelectorAll('#attendeeList input:checked').length;
+  document.getElementById('attCount').textContent = everyone ? `Everyone (${count})` : count;
+}
+
+async function deleteBooking(id) {
+  if (!confirm('Delete this booking?')) return;
+  
+  try {
+    await api(`/bookings/${id}`, { method: 'DELETE' });
+    await loadAllBookings();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+async function switchChannel(ch) {
+  chatChannel = ch;
+  await loadChat();
+  renderChat();
+}
+
+async function send() {
+  const input = document.getElementById('cm');
+  const msg = input.value.trim();
+  if (!msg) return;
+  
+  await api(`/chat/${chatChannel}`, { method: 'POST', body: { message: msg } });
+  input.value = '';
+  await loadChat();
+  renderChat();
+}
+
+async function reqLeave() {
+  const type = document.getElementById('lt').value;
+  const from = document.getElementById('lf').value;
+  const to = document.getElementById('lto').value;
+  
+  if (!from || !to || to < from) {
+    document.getElementById('lm').textContent = 'Pick valid dates';
+    return;
+  }
+  
+  await api('/leave', { method: 'POST', body: { type, start_date: from, end_date: to } });
+  document.getElementById('lm').textContent = 'Request sent';
+  await loadLeave();
+  renderLeave();
+}
+
+async function assign() {
+  const userId = document.getElementById('as').value;
+  const date = document.getElementById('ad').value;
+  const time = document.getElementById('at').value || '09:00';
+  const what = document.getElementById('aw').value.trim();
+  
+  if (!date || !what) {
+    document.getElementById('am').textContent = 'Fill in all fields';
+    return;
+  }
+  
+  await api('/admin/assign', { method: 'POST', body: { user_id: userId, date, time, description: what } });
+  document.getElementById('am').textContent = 'Assigned. They\'ll see it when they refresh.';
+  document.getElementById('aw').value = '';
+}
+
+async function addVis() {
+  const name = document.getElementById('vn').value.trim();
+  const hostId = document.getElementById('vh').value;
+  if (!name) return;
+  
+  await api('/visitors', { method: 'POST', body: { name, host_id: hostId } });
+  document.getElementById('vn').value = '';
+}
+
+async function markAllRead() {
+  await api('/notifications/read', { method: 'POST' });
+  await loadNotifications();
+}
+
+// Utils
+function esc(s) {
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+function setTheme(t) {
+  if (t === 'system') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('th', t);
+}
+
+// Init
+const savedTheme = localStorage.getItem('th') || 'system';
+setTheme(savedTheme);
+
+const savedUser = localStorage.getItem('user');
+if (savedUser) {
+  currentUser = JSON.parse(savedUser);
+  showApp();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+[
+  {"username": "John", "password": "ceo123", "name": "John Blake", "role": "ceo", "title": "CEO"},
+  {"username": "sarah", "password": "desk123", "name": "Sarah Collins", "role": "desk", "title": "Receptionist"},
+  {"username": "daniel", "password": "hr123", "name": "Daniel Brooks", "role": "admin", "title": "HR Manager"},
+  {"username": "ben", "password": "dev123", "name": "Ben Carter", "role": "emp", "title": "Software Engineer"},
+  {"username": "megan", "password": "design123", "name": "Megan Hayes", "role": "emp", "title": "Product Designer"}
+] 
